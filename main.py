@@ -6,8 +6,7 @@ import os
 import sqlite3
 
 from flask import Flask, request, jsonify
-from flask_cors import CORS
-from flask_jwt_extended import JWTManager, jwt_required, get_jwt_identity
+# from flask_jwt_extended import JWTManager, jwt_required, get_jwt_identity
 from flask_restful import Api, Resource
 
 main = Flask(__name__)
@@ -15,7 +14,7 @@ main = Flask(__name__)
 secret_key = os.environ.get('SECRET_KEY', '3456346553553445')
 main.config['JWT_SECRET_KEY'] = secret_key
 api = Api(main)
-jwt = JWTManager(main)
+# jwt = JWTManager(main)
 
 homarr_config_folder = os.environ.get('HOMMAR_CONFIG_DIR', 'homarr_config_folder')
 music_config_folder = os.environ.get('MUSIC_CONFIG', 'music_config_folder')
