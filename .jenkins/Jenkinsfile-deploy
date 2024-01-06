@@ -9,7 +9,7 @@ pipeline {
             steps {
                 script {
                     echo "Build Docker Image"
-                    docker.build("makhadoni/self-utils:latest", ".")
+                    docker.build("makhadoni/self-utils:1-5", ".")
                 }
             }
         }
@@ -18,7 +18,7 @@ pipeline {
                 script {
                     echo "Push to Docker Registry"
                     docker.withRegistry('http://192.168.1.29:5005') {
-                        docker.image("makhadoni/self-utils:1}").push()
+                        docker.image("makhadoni/self-utils:1-5}").push()
                     }
                 }
             }
