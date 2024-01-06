@@ -18,7 +18,7 @@ pipeline {
                 script {
                     echo "Push to Docker Registry"
                     docker.withRegistry('http://192.168.1.29:5005') {
-                        docker.image("makhadoni/self-utils:latest}").push()
+                        docker.image("makhadoni/self-utils:1}").push()
                     }
                 }
             }
