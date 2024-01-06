@@ -16,9 +16,6 @@ RUN mkdir /music_config_folder
 
 RUN mkdir /flame_db_folder
 
-# Make port 5000 available to the world outside this container
-EXPOSE 5000
-
 # Define environment variable
 ENV SECRET_KEY=my_secret_key
 
