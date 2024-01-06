@@ -1,28 +1,109 @@
 import json
 import uuid
+from datetime import datetime
 from urllib.parse import urlparse
 import os
+import sqlite3
 
 from flask import Flask, request, jsonify
 from flask_cors import CORS
+from flask_jwt_extended import JWTManager, jwt_required, get_jwt_identity
+from flask_restful import Api, Resource
 
 main = Flask(__name__)
 
-secret_key = os.environ.get('SECRET_KEY', 'default_secret_key')
-main.config['SECRET_KEY'] = secret_key
+secret_key = os.environ.get('SECRET_KEY', '3456346553553445')
+main.config['JWT_SECRET_KEY'] = secret_key
+api = Api(main)
+jwt = JWTManager(main)
 
-homarr_config_file = os.environ.get('SECRET_KEY', 'default_secret_key')
-artist_list_file_path = os.environ.get('SECRET_KEY', 'default_secret_key')
-soundtracks_list_file_path = os.environ.get('SECRET_KEY', 'default_secret_key')
-podcasts_list_file_path = os.environ.get('SECRET_KEY', 'default_secret_key')
+homarr_config_folder = os.environ.get('HOMMAR_CONFIG_DIR', 'homarr_config_folder')
+music_config_folder = os.environ.get('MUSIC_CONFIG', 'music_config_folder')
+flame_db_path = os.environ.get('flame_db_folder', '/flame_db_folder')
 
+homarr_config_file = '/homarr_config_folder/default.json'
+flame_db = flame_db_path + "/" + "db.sqlite"
+artist_list_file_path = '/music_config_folder/artist.txt'
+soundtracks_list_file_path = '/music_config_folder/soundtracks.txt'
+podcasts_list_file_path = '/music_config_folder/podcast.txt'
 
-
-# Use the configured secret key
-main.secret_key = main.config['SECRET_KEY']
 
 @main.route('/makhadoni/api/utils', methods=['POST'])
-def update_file():
+# @jwt_required()
+def utils():
+    data_string = request.data.decode('utf-8')
+    data_dict = json.loads(data_string)
+    if data_dict["from"] == "add_spotify_artist" or data_dict["from"] == "add_spotify_soundtrack" or data_dict[
+        "from"] == "add_spotify_podcasts":
+        return add_music(data_dict)
+    if data_dict["from"] == "bookmark" or data_dict["from"] == "bookmark_local" or data_dict[
+        "from"] == "bookmark_online":
+        return add_bookmark_to_flame(data_dict)
+
+
+def add_music(data):
+    try:
+
+        artist_id = data["url"].split('/')[-1]
+        if data["from"] == "add_spotify_artist":
+
+            with open(artist_list_file_path, 'r') as file:
+                existing_list = file.read().splitlines()
+            existing_list.append(artist_id)
+
+            with open(artist_list_file_path, 'w') as file:
+                for item in existing_list:
+                    file.write(item + '\n')
+
+        if data["from"] == "add_spotify_soundtrack":
+
+            with open(soundtracks_list_file_path, 'r') as file:
+                existing_list = file.read().splitlines()
+            existing_list.append(artist_id)
+
+            with open(artist_list_file_path, 'w') as file:
+                for item in existing_list:
+                    file.write(item + '\n')
+
+        if data["from"] == "add_spotify_podcasts":
+
+            with open(podcasts_list_file_path, 'r') as file:
+                existing_list = file.read().splitlines()
+            existing_list.append(data["url"])
+
+            with open(podcasts_list_file_path, 'w') as file:
+                for item in existing_list:
+                    file.write(item + '\n')
+
+        response = {'status': 'success', 'message': 'File updated successfully'}
+        return jsonify(response), 200
+    except Exception as e:
+        error_message = str(e)
+        response = {'status': 'error', 'message': error_message}
+        return jsonify(response), 500
+
+
+def add_bookmark_to_flame(data):
+    try:
+        categories = select_from_flame_db(data['category'], "categories")
+        if data["from"] == "bookmark":
+            name = urlparse(data["url"]).hostname if data["name"] is None or data["name"] == "" else data["name"]
+            insert_to_flame_db(name, data["url"], categories[0]['id'], data["icon"], 1, 1, "bookmark")
+        if data["from"] == "bookmark_local":
+            name = urlparse(data["url"]).hostname if data["name"] is None or data["name"] == "" else data["name"]
+            insert_to_flame_db(name, data["url"], -1, data["icon"], 1, 1, "apps")
+        if data["from"] == "bookmark_online":
+            name = urlparse(data["url"]).hostname if data["name"] is None or data["name"] == "" else data["name"]
+            insert_to_flame_db(name, data["url"], categories[0]['id'], data["icon"], 1, 1, "bookmark")
+        response = {'status': 'success', 'message': 'File updated successfully'}
+        return jsonify(response), 200
+    except Exception as e:
+        error_message = str(e)
+        response = {'status': 'error', 'message': error_message}
+        return jsonify(response), 500
+
+
+def add_bookmark_to_homarr(data):
     try:
         # Get JSON data from the request
         data_string = request.data.decode('utf-8')
@@ -30,7 +111,8 @@ def update_file():
 
         new_bookmark_item = {
             "id": str(uuid.uuid4()),
-            "name": urlparse(data_dict["url"]).hostname if data_dict["name"] is None or data_dict["name"] == "" else data_dict["name"],
+            "name": urlparse(data_dict["url"]).hostname if data_dict["name"] is None or data_dict["name"] == "" else
+            data_dict["name"],
             "href": data_dict["url"],
             "iconUrl": data_dict["icon"],
             "openNewTab": True,
@@ -150,40 +232,6 @@ def update_file():
             with open(homarr_config_file, 'w', encoding='utf-8') as file:
                 json.dump(config_json, file, indent=2)
 
-        if data_dict["from"] == "add_spotify_artist":
-
-            artist_id = data_dict["url"].split('/')[-1]
-
-            with open(artist_list_file_path, 'r') as file:
-                existing_list = file.read().splitlines()
-            existing_list.append(artist_id)
-
-            with open(artist_list_file_path, 'w') as file:
-                for item in existing_list:
-                    file.write(item + '\n')
-
-        if data_dict["from"] == "add_spotify_soundtrack":
-
-            artist_id = data_dict["url"].split('/')[-1]
-
-            with open(soundtracks_list_file_path, 'r') as file:
-                existing_list = file.read().splitlines()
-            existing_list.append(artist_id)
-
-            with open(artist_list_file_path, 'w') as file:
-                for item in existing_list:
-                    file.write(item + '\n')
-
-        if data_dict["from"] == "add_spotify_podcasts":
-
-            with open(podcasts_list_file_path, 'r') as file:
-                existing_list = file.read().splitlines()
-            existing_list.append(data_dict["url"])
-
-            with open(podcasts_list_file_path, 'w') as file:
-                for item in existing_list:
-                    file.write(item + '\n')
-
         response = {'status': 'success', 'message': 'File updated successfully'}
         return jsonify(response), 200
 
@@ -191,6 +239,38 @@ def update_file():
         error_message = str(e)
         response = {'status': 'error', 'message': error_message}
         return jsonify(response), 500
+
+
+def insert_to_flame_db(name, url, categoryid, icon, ispublic, ispinned, type):
+    conn = sqlite3.connect(flame_db)
+    cursor = conn.cursor()
+    if type == "apps":
+        data_to_insert = (name, url, icon, ispinned, datetime.now(), datetime.now(), ispublic, categoryid)
+        cursor.execute(
+            "INSERT INTO apps (name, url, icon, isPinned, createdAt, updatedAt, isPublic, categoryId) VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
+            data_to_insert)
+    if type == "bookmark":
+        data_to_insert = (name, url, categoryid, icon, datetime.now(), datetime.now(), ispublic)
+        cursor.execute(
+            "INSERT INTO bookmarks (name, url,categoryId, icon, createdAt, updatedAt, isPublic) VALUES (?, ?, ?, ?, ?, ?, ?)",
+            data_to_insert)
+    conn.commit()
+    cursor.close()
+    conn.close()
+
+
+def select_from_flame_db(value, table_name):
+    conn = sqlite3.connect(flame_db)
+    cursor = conn.cursor()
+    query = f"SELECT * FROM {table_name} WHERE name COLLATE NOCASE = ?"
+    cursor.execute(query, (value,))
+    rows = cursor.fetchall()
+    column_names = [description[0] for description in cursor.description]
+    result = [dict(zip(column_names, row)) for row in rows]
+    cursor.close()
+    conn.close()
+    return result
+
 
 if __name__ == '__main__':
     main.run(port=5000)

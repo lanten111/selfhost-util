@@ -10,13 +10,17 @@ COPY . /app
 # Install any needed packages specified in requirements.txt
 RUN pip install --no-cache-dir -r requirements.txt
 
+RUN mkdir /homarr_config_folder
+
+RUN mkdir /music_config_folder
+
+RUN mkdir /flame_db_folder
+
 # Make port 5000 available to the world outside this container
 EXPOSE 5000
 
 # Define environment variable
 ENV SECRET_KEY=my_secret_key
-ENV MUSIC_CONFIG=your_database_url
-ENV HOMMAR_CONFIG_DIR=hommar
 
 # Run app.py when the container launches
 CMD ["python", "main.py"]
