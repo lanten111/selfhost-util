@@ -8,7 +8,7 @@ pipeline {
             stage('Build Docker Image') {
             steps {
                 script {
-                    // Build Docker image and tag it with the build version
+                    echo "Build Docker Image"
                     docker.build("makhadoni/self-utils:latest", ".")
                 }
             }
@@ -16,6 +16,7 @@ pipeline {
         stage('Push to Docker Registry') {
             steps {
                 script {
+                    echo "Push to Docker Registry"
                     docker.withRegistry('http://192.168.1.29:5005') {
                         docker.image("makhadoni/self-utils:latest}").push()
                     }
@@ -25,6 +26,7 @@ pipeline {
         stage('Deploy to Environment') {
             steps {
                 script {
+                    echo "Deploy to Environment"
                     sh 'ssh utility@192.168.1.16 "cd /docker/self-utils && docker-compose up -d"'
                 }
             }
