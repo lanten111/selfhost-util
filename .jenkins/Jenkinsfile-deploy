@@ -3,19 +3,10 @@ pipeline {
         tools {
         dockerTool 'docker'
     }
-
-    parameters {
-        choice(name: 'DEPLOY_ENV', choices: ['dev', 'prod'], description: 'Select deployment environment')
-        extendedChoice(name: 'SELECTED_VERSION', type: 'Single Select', groovyScript: 'return readFile("version.properties").contains("VERSION=") ? [readFile("version.properties").replaceAll("VERSION=", "").trim()] : []', description: 'Select a version to deploy')
-    }
-
-
-
-    stages {
             stage('Build Docker Image') {
             steps {
                 script {
-                    // Build Docker image and tag it with the build version
+                   echo "Build Docker Image"
                     docker.build("makhadoni/self-utils:latest", ".")
                 }
             }
@@ -24,26 +15,17 @@ pipeline {
         stage('Push to Docker Registry') {
             steps {
                 script {
+                   echo "Push to Docker Registry"
                     docker.withRegistry('http://192.168.1.29:5005') {
                         docker.image("makhadoni/self-utils:latest}").push()
                     }
                 }
             }
         }
-        stage('Install Docker Compose') {
-                steps {
-                        script {
-                            // Download and install Docker Compose
-                            sh '''
-                                curl -L https://github.com/docker/compose/releases/latest/download/docker-compose-$(uname -s)-$(uname -m) -o /usr/local/bin/docker-compose
-                                chmod +x /usr/local/bin/docker-compose
-                            '''
-                        }
-                    }
-                }
         stage('Deploy to Environment') {
             steps {
                 script {
+                     echo "Deploying to alfred"
                     sh 'ssh utility@192.168.1.16 "cd /docker/self-utils && docker-compose up -d"'
                 }
             }
