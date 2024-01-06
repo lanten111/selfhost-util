@@ -21,7 +21,8 @@ music_config_folder = os.environ.get('MUSIC_CONFIG', 'music_config_folder')
 flame_db_path = os.environ.get('flame_db_folder', '/flame_db_folder')
 
 homarr_config_file = '/homarr_config_folder/default.json'
-flame_db = flame_db_path + "/" + "db.sqlite"
+# flame_db = flame_db_path + "/" + "db.sqlite"
+flame_db = 'C:\\Users\\makha\\Downloads\\db.sqlite'
 artist_list_file_path = '/music_config_folder/artist.txt'
 soundtracks_list_file_path = '/music_config_folder/soundtracks.txt'
 podcasts_list_file_path = '/music_config_folder/podcast.txt'
@@ -32,11 +33,9 @@ podcasts_list_file_path = '/music_config_folder/podcast.txt'
 def utils():
     data_string = request.data.decode('utf-8')
     data_dict = json.loads(data_string)
-    if data_dict["from"] == "add_spotify_artist" or data_dict["from"] == "add_spotify_soundtrack" or data_dict[
-        "from"] == "add_spotify_podcasts":
+    if data_dict["from"] == "add_spotify_artist" or data_dict["from"] == "add_spotify_soundtrack" or data_dict["from"] == "add_spotify_podcasts":
         return add_music(data_dict)
-    if data_dict["from"] == "bookmark" or data_dict["from"] == "bookmark_local" or data_dict[
-        "from"] == "bookmark_online":
+    if data_dict["from"] == "bookmark" or data_dict["from"] == "bookmark_local" or data_dict["from"] == "bookmark_online" or data_dict["from"] == "bookmark_tailscale":
         return add_bookmark_to_flame(data_dict)
 
 
@@ -87,19 +86,22 @@ def add_music(data):
 
 def add_bookmark_to_flame(data):
     try:
-        categories = select_from_flame_db(data['category'], "categories")
         if data["from"] == "bookmark":
+            categories = select_from_flame_db(data['category'], "categories")
+            categoryid = categories[0]["id"] if categories and categories[0].get("id") is not None else ""
             name = urlparse(data["url"]).hostname if data["name"] is None or data["name"] == "" else data["name"]
-            insert_to_flame_db(name, data["url"], categories[0]['id'], data["icon"], 1, 1, "bookmark")
-            logging.info("added new bookmark"+ data["name"], categories[0]['name'])
+            insert_to_flame_db(name, data["url"], categoryid, data["icon"], 1, 1, "bookmark")
+            logging.info("added new bookmark"+ data["name"], data["url"])
         if data["from"] == "bookmark_local":
             name = urlparse(data["url"]).hostname if data["name"] is None or data["name"] == "" else data["name"]
             insert_to_flame_db(name, data["url"], -1, data["icon"], 1, 1, "apps")
-            logging.info("added new bookmark" + data["name"], categories[0]['name'])
+            logging.info("added new bookmark" + data["name"], data["url"])
         if data["from"] == "bookmark_online":
             name = urlparse(data["url"]).hostname if data["name"] is None or data["name"] == "" else data["name"]
-            insert_to_flame_db(name, data["url"], categories[0]['id'], data["icon"], 1, 1, "bookmark")
-            logging.info("added new bookmark" + data["name"], categories[0]['name'])
+            categories = select_from_flame_db(data['category'], "categories")
+            categoryid = categories[0]["id"] if categories and categories[0].get("id") is not None else ""
+            insert_to_flame_db(name, data["url"], categoryid, data["icon"], 1, 1, "bookmark")
+            logging.info("added new bookmark" + data["name"], data["url"])
         response = {'status': 'success', 'message': 'File updated successfully'}
         return jsonify(response), 200
     except Exception as e:
