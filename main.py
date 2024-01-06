@@ -2,6 +2,7 @@ import json
 import uuid
 from datetime import datetime
 from urllib.parse import urlparse
+import logging
 import os
 import sqlite3
 
@@ -52,6 +53,7 @@ def add_music(data):
             with open(artist_list_file_path, 'w') as file:
                 for item in existing_list:
                     file.write(item + '\n')
+            logging.info("added new artist " + data["url"])
 
         if data["from"] == "add_spotify_soundtrack":
 
@@ -62,6 +64,7 @@ def add_music(data):
             with open(artist_list_file_path, 'w') as file:
                 for item in existing_list:
                     file.write(item + '\n')
+            logging.info("added new soundtrack " + data["url"])
 
         if data["from"] == "add_spotify_podcasts":
 
@@ -72,6 +75,7 @@ def add_music(data):
             with open(podcasts_list_file_path, 'w') as file:
                 for item in existing_list:
                     file.write(item + '\n')
+            logging.info("added new podcasts " + data["url"])
 
         response = {'status': 'success', 'message': 'File updated successfully'}
         return jsonify(response), 200
@@ -87,12 +91,15 @@ def add_bookmark_to_flame(data):
         if data["from"] == "bookmark":
             name = urlparse(data["url"]).hostname if data["name"] is None or data["name"] == "" else data["name"]
             insert_to_flame_db(name, data["url"], categories[0]['id'], data["icon"], 1, 1, "bookmark")
+            logging.info("added new bookmark"+ data["name"], categories[0]['name'])
         if data["from"] == "bookmark_local":
             name = urlparse(data["url"]).hostname if data["name"] is None or data["name"] == "" else data["name"]
             insert_to_flame_db(name, data["url"], -1, data["icon"], 1, 1, "apps")
+            logging.info("added new bookmark" + data["name"], categories[0]['name'])
         if data["from"] == "bookmark_online":
             name = urlparse(data["url"]).hostname if data["name"] is None or data["name"] == "" else data["name"]
             insert_to_flame_db(name, data["url"], categories[0]['id'], data["icon"], 1, 1, "bookmark")
+            logging.info("added new bookmark" + data["name"], categories[0]['name'])
         response = {'status': 'success', 'message': 'File updated successfully'}
         return jsonify(response), 200
     except Exception as e:
