@@ -19,5 +19,10 @@ RUN mkdir /flame_db_folder
 # Define environment variable
 ENV SECRET_KEY=my_secret_key
 
+EXPOSE 5000
+
+# Define environment variable
+ENV FLASK_APP=main.py
+
 # Run app.py when the container launches
-CMD ["python", "main.py"]
+CMD ["flask", "run", "--host=0.0.0.0"]
