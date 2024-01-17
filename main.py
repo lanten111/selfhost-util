@@ -27,11 +27,10 @@ music_config_folder = os.environ.get('music_config_folder')
 flame_db_path = os.environ.get('flame_db_folder')
 
 homarr_config_file = '/homarr_config_folder/default.json'
-flame_db = flame_db_path / "db.sqlite"
-# flame_db = 'C:\\Users\\makha\\Downloads\\db.sqlite'
-artist_list_file_path = music_config_folder / "/artist.txt"
-soundtracks_list_file_path = music_config_folder / "soundtracks.txt"
-podcasts_list_file_path = music_config_folder /  "podcast.txt"
+flame_db = flame_db_path + "/" + "db.sqlite"
+artist_list_file_path = music_config_folder + "/" + "/artist.txt"
+soundtracks_list_file_path = music_config_folder + "/" + "soundtracks.txt"
+podcasts_list_file_path = music_config_folder + "/" + "podcast.txt"
 
 @main.route('/makhadoni/api/utils', methods=['POST'])
 # @jwt_required()
