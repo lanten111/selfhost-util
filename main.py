@@ -18,9 +18,13 @@ main = Flask(__name__)
 # api = Api(main)
 # jwt = JWTManager(main)
 
-homarr_config_folder = os.environ.get('homarr_config_folder', Path.home() / ".self-utils")
-music_config_folder = os.environ.get('music_config_folder', Path.home()  / ".self-utils")
-flame_db_path = os.environ.get('flame_db_folder', Path.home() / ".self-utils")
+# homarr_config_folder = os.environ.get('homarr_config_folder', Path.home() / ".self-utils")
+# music_config_folder = os.environ.get('music_config_folder', Path.home()  / ".self-utils")
+# flame_db_path = os.environ.get('flame_db_folder', Path.home() / ".self-utils")
+
+homarr_config_folder = os.environ.get('homarr_config_folder')
+music_config_folder = os.environ.get('music_config_folder')
+flame_db_path = os.environ.get('flame_db_folder')
 
 homarr_config_file = '/homarr_config_folder/default.json'
 flame_db = flame_db_path / "db.sqlite"
