@@ -18,19 +18,21 @@ main = Flask(__name__)
 # api = Api(main)
 # jwt = JWTManager(main)
 
-# homarr_config_folder = os.environ.get('homarr_config_folder', Path.home() / ".self-utils")
-# music_config_folder = os.environ.get('music_config_folder', Path.home()  / ".self-utils")
+flame_db_path = "/flame_db_folder"
+
+# Check if the volume directory exists
+if not os.path.exists(flame_db_path):
+    os.makedirs(flame_db_path)
+
+
+music_config_folder = os.environ.get('music_config_folder', Path.home() / ".self-utils")
 # flame_db_path = os.environ.get('flame_db_folder', Path.home() / ".self-utils")
 
-homarr_config_folder = os.environ.get('homarr_config_folder')
-music_config_folder = os.environ.get('music_config_folder')
-flame_db_path = os.environ.get('flame_db_folder')
+flame_db = flame_db_path + "/db.sqlite"
 
-homarr_config_file = '/homarr_config_folder/default.json'
-flame_db = flame_db_path + "/" + "db.sqlite"
-artist_list_file_path = music_config_folder + "/" + "/artist.txt"
-soundtracks_list_file_path = music_config_folder + "/" + "soundtracks.txt"
-podcasts_list_file_path = music_config_folder + "/" + "podcast.txt"
+artist_list_file_path = music_config_folder / "/artist.txt"
+soundtracks_list_file_path = music_config_folder / "soundtracks.txt"
+podcasts_list_file_path = music_config_folder / "podcast.txt"
 
 @main.route('/makhadoni/api/utils', methods=['POST'])
 # @jwt_required()
